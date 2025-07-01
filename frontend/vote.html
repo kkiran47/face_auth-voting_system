@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vote - Face Voting System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      min-height: 100vh;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      padding-top: 30px;
+    }
+
+    .card {
+      border-radius: 15px;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .card-header {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .btn-outline-primary {
+      border-radius: 30px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .btn-outline-primary:hover {
+      background-color: #0d6efd;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .btn-outline-info {
+      border-radius: 20px;
+    }
+
+    #voteSuccess, #voteError {
+      font-weight: bold;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 576px) {
+      .btn-outline-primary {
+        width: 100%;
+        margin-bottom: 10px !important;
+      }
+
+      .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+      }
+
+      .btn-outline-info {
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#">🗳 Face Voting - Elections</a>
+      <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="fw-bold">Active Elections</h2>
+      <a href="my-result.html" class="btn btn-outline-info">📊 Your Vote Result</a>
+    </div>
+
+    <div id="electionsContainer" class="row g-4"></div>
+
+    <div id="voteSuccess" class="text-success mt-4"></div>
+    <div id="voteError" class="text-danger mt-2"></div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login first.");
+      window.location.href = "login.html";
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    async function loadElections() {
+      const container = document.getElementById("electionsContainer");
+      container.innerHTML = "<p>Loading elections... ⏳</p>";
+
+      try {
+        const res = await fetch("http://localhost:5000/api/vote/active", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const elections = await res.json();
+
+        if (!Array.isArray(elections) || elections.length === 0) {
+          container.innerHTML = "<p class='text-light'>No active elections available.</p>";
+          return;
+        }
+
+        container.innerHTML = elections.map(e => `
+          <div class="col-md-6">
+            <div class="card shadow">
+              <div class="card-header bg-primary text-white">
+                ${e.title}
+              </div>
+              <div class="card-body d-flex flex-wrap justify-content-start">
+                ${Object.keys(e.votes).map(candidate => `
+                  <button class="btn btn-outline-primary m-1" onclick="vote('${e._id}', '${candidate}')">
+                    Vote for ${candidate}
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        container.innerHTML = "<p class='text-danger'>Failed to load elections.</p>";
+      }
+    }
+
+    async function vote(electionId, candidate) {
+      const voteSuccess = document.getElementById("voteSuccess");
+      const voteError = document.getElementById("voteError");
+      voteSuccess.innerText = voteError.innerText = "";
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/vote/${electionId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ candidate })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          voteSuccess.innerText = "✅ Vote cast successfully!";
+          setTimeout(() => {
+            voteSuccess.innerText = "";
+            loadElections();
+          }, 2000);
+        } else {
+          voteError.innerText = data.msg || "Error casting vote.";
+        }
+      } catch (err) {
+        voteError.innerText = "Server error.";
+      }
+    }
+
+    loadElections();
+  </script>
+
+</body>
+</html>

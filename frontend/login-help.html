@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Help - Face Voting</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: #fff;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    h2 {
+      margin-bottom: 25px;
+      font-weight: bold;
+    }
+    ul {
+      padding-left: 1rem;
+    }
+    a.btn-back {
+      display: inline-block;
+      margin-top: 20px;
+      color: #fff;
+      background: #0d6efd;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    a.btn-back:hover {
+      background-color: #084298;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card bg-white text-dark">
+    <h2 class="text-center text-primary">❓ Login Help</h2>
+    
+    <h5>🔐 Forgot Password?</h5>
+    <p>We currently do not support password reset via email. Please contact the system admin to reset your password securely.</p>
+
+    <h5>📸 Face Not Detected?</h5>
+    <ul>
+      <li>Ensure your face is well-lit and clearly visible.</li>
+      <li>Do not wear sunglasses or masks.</li>
+      <li>Position your face in the center of the webcam frame.</li>
+      <li>Try recapturing after refreshing the page.</li>
+    </ul>
+
+    <h5>📷 Camera Not Working?</h5>
+    <ul>
+      <li>Ensure your browser has camera access permissions.</li>
+      <li>Check browser settings (Chrome: lock icon > Site settings > Camera).</li>
+      <li>Make sure no other app is using the webcam.</li>
+      <li>Restart your browser or device if needed.</li>
+    </ul>
+
+    <h5>🧩 Other Issues?</h5>
+    <p>If you're still unable to log in, please contact support or visit your institution's admin desk for manual verification.</p>
+
+    <div class="text-center">
+      <a href="login.html" class="btn-back">🔙 Back to Login</a>
+    </div>
+  </div>
+
+</body>
+</html>

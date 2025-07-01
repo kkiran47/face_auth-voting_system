@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - Face Voting</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #7f7fd5, #86a8e7, #91eae4);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      padding: 30px 10px;
+    }
+
+    .logo-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-header h1 {
+      font-size: 28px;
+      color: #ffffff;
+      font-weight: 700;
+      animation: fadeIn 1s ease;
+    }
+
+    .logo-header img {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.6s ease;
+    }
+
+    h2 {
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #5b2bc7;
+    }
+
+    video, canvas {
+      display: block;
+      margin: 10px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      max-width: 100%;
+    }
+
+    .btn-primary, .btn-outline-secondary {
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover, .btn-outline-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .status {
+      color: green;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #4b2bae;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 576px) {
+      .card {
+        padding: 20px;
+      }
+
+      .logo-header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo-header">
+    <img src="https://img.icons8.com/color/96/vote.png" alt="Logo" />
+    <h1>Face Voting System</h1>
+  </div>
+
+  <div class="card">
+    <h2>📝 Register</h2>
+    <form id="registerForm">
+      <div class="mb-3">
+        <input type="text" class="form-control" id="name" placeholder="Full Name" required />
+      </div>
+      <div class="mb-3">
+        <input type="email" class="form-control" id="email" placeholder="Email" required />
+      </div>
+      <div class="mb-3">
+        <input type="password" class="form-control" id="password" placeholder="Password" required />
+      </div>
+      <div class="mb-3">
+        <select class="form-select" id="role" required>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn btn-outline-secondary w-100" onclick="captureImage()">📸 Capture Face</button>
+      <video id="video" width="320" height="240" autoplay></video>
+      <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+      <button type="submit" class="btn btn-primary w-100 mt-3">Register</button>
+    </form>
+
+    <div class="status" id="status"></div>
+    <div class="error" id="error"></div>
+    <a href="login.html">Already have an account? Login</a>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let faceBlob = null;
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(err => {
+        console.error("Camera error:", err);
+        document.getElementById("error").innerText = "Unable to access webcam.";
+      });
+
+    function captureImage() {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        faceBlob = blob;
+        document.getElementById("status").innerText = "✅ Face Captured";
+      }, "image/jpeg");
+    }
+
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const status = document.getElementById("status");
+      const error = document.getElementById("error");
+      status.innerText = error.innerText = "";
+
+      if (!faceBlob) {
+        error.innerText = "Please capture your face before registering.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", document.getElementById("name").value);
+      formData.append("email", document.getElementById("email").value);
+      formData.append("password", document.getElementById("password").value);
+      formData.append("role", document.getElementById("role").value);
+      formData.append("faceImage", faceBlob);
+
+      status.innerText = "Registering... ⏳";
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          status.innerText = "✅ Registered! Redirecting...";
+          setTimeout(() => window.location.href = "login.html", 1500);
+        } else {
+          error.innerText = data.msg || "Registration failed.";
+        }
+      } catch (err) {
+        error.innerText = "Server error. Try again later.";
+      }
+    });
+  </script>
+</body>
+</html>
